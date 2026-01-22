@@ -24,9 +24,10 @@ def train_and_load_model():
     st.info("Training model for the first time... This will take about 2 minutes.")
 
     #Load data
-    housing = fetch_california_housing()
-    df = pd.DataFrame(housing.data, columns=housing.features_names)
-    df['Price'] = housing.target * 100000
+    housing = fetch_california_housing(as_frame=True)
+    df = housing.frame.copy()
+    df['Price'] = df['MedHousVal'] * 100000
+    df = df.drop('MedHouseVal', axis=1)
 
     #Feature engineering
     df['RoomsPerHousehold'] = df['AveRooms']/df['AveOccup']
