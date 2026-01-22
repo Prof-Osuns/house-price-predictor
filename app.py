@@ -2,17 +2,64 @@ import streamlit as st
 import pickle
 import numpy as np
 import pandas as pd
+import os
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.datasets import fetch_california_housing
 
-#Load the saved model and scaler
+
+#Function to train and saved model
 @st.cache_resource
-def load_model():
-    with open('best_model.pkl', 'rb') as f:
-        model = pickle.load(f)
-    with open('scaler.pkl', 'rb') as f:
-        scaler = pickle.load(f)
+def train_and_load_model():
+    #Check if models exist
+    if os.path.exists('best_model.pkl') and os.path.exists('scaler.pkl'):
+        with open('best_model.pkl', 'rb') as f:
+            model = pickle.load(f)
+        with open('scaler.pkl', 'rb') as f:
+            scaler = pickle.load(f)
+        return model, scaler
+    
+    #If not, train the model
+    st.info("Training model for the first time... This will take about 2 minutes.")
+
+    #Load data
+    housing = fetch_california_housing()
+    df = pd.DataFrame(housing.data, columns=housing.features_names)
+    df['Price'] = housing.target * 100000
+
+    #Feature engineering
+    df['RoomsPerHousehold'] = df['AveRooms']/df['AveOccup']
+    df['BedroomsPerRoom'] = df['AveBedrms']/df['AveRooms']
+    df['PopulationPerHousehold'] = df['Population']/df['HouseAge']
+
+    #Prepare features 
+    X = df.drop('Price', axis=1)
+    y = df['Price']
+    
+    #Split data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    #Scale features
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+
+    #Train Random Forest
+    model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    model.fit(X_train_scaled, y_train)
+
+    #Save models
+    with open('best_model.pkl', 'wb') as f:
+        pickle.dump(model, f)
+    with open('scaler.pkl', 'wb') as f:
+        pickle.dump(scaler, f)
+
+    st.success("Model trained successfully!")
     return model, scaler
 
-model, scaler = load_model()
+#Load model
+model, scaler = train_and_load_model()
+
 
 #App title and description
 st.title("California House Price Predictor")
@@ -61,3 +108,4 @@ st.write("- **Model**: Random Forest Regressor")
 st.write("- **R² Score**: 0.8041")
 st.write("- **Mean Absolute Error**: $32,968")
 st.write("- **Dataset**: California Housing (20,640 samples)")
+st.write("- **Note**: Model trains automatically on first run (takes ~2 minutes)")
