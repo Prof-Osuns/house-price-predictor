@@ -3,6 +3,7 @@
 A machine learning web application that predicts house prices in California based on location and neighborhood charateristics.
 
 ## Live Demo
+Try it here: https://house-price-predictor-ayomikun.streamlit.app/ 
 
 ## Model Performance
 - **Algorithm**: Random Forest Regressor
