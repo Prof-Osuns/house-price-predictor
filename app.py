@@ -77,7 +77,7 @@ st.write("---")
 st.info("**Note:** This model predicts house prices based on neighbourhood charateristics, not individual buyer information.")
 
 with st.expander("What do these inputs mean?"):
-    st.writer("""
+    st.write("""
               **Median Income**: Median household income in the neighborhood (in tens of thousands of dollars)
               -Example: 3.0 = $30,000/year
 
